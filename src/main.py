@@ -81,7 +81,7 @@ def get_top_words(documents, top_n=10):
 
 ## ---------------------------------------------------------------------
 
-# Charger les fichiers
+# Chemins des fichiers d'entrée
 reviews_file_path = './data/reviews.jsonl'
 meta_file_path = './data/meta.jsonl'
 
@@ -122,6 +122,9 @@ reviews_selected['lemmas_cleaned'] = reviews_selected['lemmas_no_stopwords'].app
 # Convertir les listes nettoyées en chaînes de caractères pour TfidfVectorizer
 reviews_selected['cleaned_text'] = reviews_selected['lemmas_cleaned'].apply(lambda x: " ".join(x))
 
+# Convertir en minuscules
+reviews_selected['cleaned_text'] = reviews_selected['cleaned_text'].str.lower()
+
 # Afficher un aperçu des données nettoyées
 print(reviews_selected[['text', 'cleaned_text']].head())
 
@@ -135,6 +138,7 @@ cleaned_texts = reviews_selected['cleaned_text']
 # Représenter les documents sous forme vectorielle
 vectorizer = TfidfVectorizer()
 X = vectorizer.fit_transform(cleaned_texts)
+print(X)
 
 print("\n------ Clustering des avis avec KMeans...\n")
 
