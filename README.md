@@ -79,12 +79,12 @@ Ce projet implémente un pipeline de traitement de texte pour regrouper des docu
 .
 ├── data/
 │   ├── reviews.jsonl          # Fichier d'avis (input)
-│   ├── meta.jsonl             # Fichier de métadonnées (facultatif)
+│   └── meta.jsonl             # Fichier de métadonnées (facultatif)
 ├── processed_data/
 │   ├── reviews_processed_<date>.jsonl # Fichiers nettoyés
-│   ├── reviews_clustered_<date>.jsonl # Fichiers regroupés par cluster
+│   └── reviews_clustered_<date>.jsonl # Fichiers regroupés par cluster
 ├── src                  # Script principal
-│   ├── main.py           # Pipeline de traitement de texte
+│   └── main.py           # Pipeline de traitement de texte
 ├── requirements.txt           # Dépendances
 ├── README.md                  # Documentation
 └── .gitignore                 # Fichiers ignorés par Git
