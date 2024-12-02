@@ -136,7 +136,7 @@ cleaned_texts = reviews_selected['cleaned_text']
 vectorizer = TfidfVectorizer()
 X = vectorizer.fit_transform(cleaned_texts)
 
-print("Clustering des avis avec KMeans...")
+print("\n------ Clustering des avis avec KMeans...\n")
 
 # Appliquer l'algorithme KMeans pour regrouper les avis
 kmeans = KMeans(n_clusters=5, random_state=42).fit(X)
@@ -159,4 +159,7 @@ clustered_file_path = os.path.join(output_dir, f'reviews_clustered_{date}.jsonl'
 # Enregistrer les données traitées
 reviews_selected[['cluster', 'cleaned_text']].to_json(clustered_file_path, orient='records', lines=True)
 
-print("Fin du traitement")
+print("Fin du traitement ------\n")
+
+top_words = get_top_words(reviews_selected['lemmas_cleaned'], top_n=10)
+print(f"Top words : {top_words}")
