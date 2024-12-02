@@ -1,5 +1,7 @@
 import pandas as pd
 import json
+import spacy
+import pandas as pd
 
 # Fonction pour charger un fichier JSONL
 def load_jsonl(file_path):
@@ -28,3 +30,21 @@ print(reviews_selected.head())
 print("\nMeta DataFrame:")
 print(meta_selected.head())
 
+
+
+
+# Charger le modèle de langue de spaCy
+nlp = spacy.load('en_core_web_sm')
+
+# Fonction de tokenisation avec spaCy
+def tokenize_spacy(text):
+    if pd.isnull(text):  # Gérer les textes manquants
+        return []
+    doc = nlp(text)
+    return [token.text for token in doc]
+
+# Ajouter une colonne tokenisée
+reviews_df['tokens_spacy'] = reviews_df['text'].apply(tokenize_spacy)
+
+# Afficher un aperçu des tokens
+print(reviews_df[['text', 'tokens_spacy']].head())
