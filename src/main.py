@@ -1,8 +1,8 @@
-import pandas as pd
-import json
-import spacy
-import pandas as pd
 import datetime
+import json
+import pandas as pd
+import re
+import spacy
 import string
 
 
@@ -33,17 +33,46 @@ def remove_stopwords(tokens):
     # Filtrer les tokens qui ne sont pas des stopwords
     return [token for token in tokens if not nlp.vocab[token].is_stop]
 
-# Fonction pour supprimer ponctuation et espaces vides
-def remove_punctuation_and_spaces(tokens):
-    # Filtrer les tokens qui ne sont pas de la ponctuation et qui ne sont pas des espaces vides
-    return [token for token in tokens if token not in string.punctuation and token.strip() != '']
 
+# Fonction pour nettoyer les tokens
+def clean_tokens(tokens):
+    if not isinstance(tokens, list) or not tokens:
+        return []
+
+    # Compilation des regex pour optimisation
+    regex_multiple_punctuations = re.compile(r'[\.\,\!\?\;\:]{2,}')  # Ponctuation répétée
+    regex_multiple_spaces = re.compile(r'\s{2,}')  # Espaces multiples
+    regex_numbers = re.compile(r'\d+')  # Numéros
+    regex_emojis = re.compile(r'[^\w\s,]')  # Émojis (tout caractère non alphanumérique ou ponctuation classique)
+
+    cleaned_tokens = []
+    for token in tokens:
+        # Supprimer les ponctuations répétées
+        if regex_multiple_punctuations.match(token):
+            continue
+        # Supprimer les espaces multiples (inutile dans les tokens, mais par sécurité)
+        if regex_multiple_spaces.match(token):
+            continue
+        # Supprimer les numéros
+        if regex_numbers.match(token):
+            continue
+        # Supprimer les émojis
+        if regex_emojis.match(token):
+            continue
+        # Supprimer les ponctuations uniques
+        if token in string.punctuation:
+            continue
+        # Ajouter le token nettoyé
+        cleaned_tokens.append(token)
+    return cleaned_tokens
 
 ## ---------------------------------------------------------------------
 
 # Charger les fichiers
 reviews_file_path = './data/reviews.jsonl'
 meta_file_path = './data/meta.jsonl'
+# Date pour l'enregistrement des fichiers
+date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 reviews_data = load_jsonl(reviews_file_path)
 meta_data = load_jsonl(meta_file_path)
@@ -68,25 +97,18 @@ nlp = spacy.load('en_core_web_sm')
 
 # Ajouter une colonne tokenisée (tokenisation)
 reviews_selected['tokens_spacy'] = reviews_selected['text'].apply(tokenize_spacy)
-print(reviews_selected[['text', 'tokens_spacy']].head())
 
 # Appliquer la lemmatisation
 reviews_selected['lemmas_from_tokens'] = reviews_selected['tokens_spacy'].apply(lemmatize_tokens)
-print(reviews_selected[['tokens_spacy', 'lemmas_from_tokens']].head())
 
 # Supprimer les stopwords
 reviews_selected['lemmas_no_stopwords'] = reviews_selected['lemmas_from_tokens'].apply(remove_stopwords)
-print(reviews_selected[['lemmas_from_tokens', 'lemmas_no_stopwords']].head())
 
 # Supprimer la ponctuation après suppression des stopwords
-reviews_selected['lemmas_cleaned'] = reviews_selected['lemmas_no_stopwords'].apply(remove_punctuation_and_spaces)
+reviews_selected['lemmas_cleaned'] = reviews_selected['lemmas_no_stopwords'].apply(clean_tokens)
 
 print(reviews_selected[['lemmas_no_stopwords', 'lemmas_cleaned']].head())
 
 
-
-
-date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-
 # Enregistrer les données traitées
-reviews_selected.to_json(f'./processed_data/reviews_processed_{date}.jsonl', lines=True, orient='records')
+reviews_selected['lemmas_cleaned'].to_csv(f'./processed_data/reviews_processed_{date}.csv', index=False)
