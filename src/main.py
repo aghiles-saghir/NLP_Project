@@ -2,6 +2,7 @@ import pandas as pd
 import json
 import spacy
 import pandas as pd
+import datetime
 
 # Fonction pour charger un fichier JSONL
 def load_jsonl(file_path):
@@ -15,7 +16,6 @@ def tokenize_spacy(text):
     doc = nlp(text)
     return [token.text for token in doc]
 
-
 #Fonction de lemmatisation 
 def lemmatize_tokens(tokens):
     # Vérifiez si les tokens sont bien une liste
@@ -25,6 +25,12 @@ def lemmatize_tokens(tokens):
     text = " ".join(tokens)
     doc = nlp(text)
     return [token.lemma_ for token in doc]
+
+# Fonction de suppression des stopwords
+def remove_stopwords(tokens):
+    # Filtrer les tokens qui ne sont pas des stopwords
+    return [token for token in tokens if not nlp.vocab[token].is_stop]
+
 
 ## ---------------------------------------------------------------------
 
@@ -57,7 +63,19 @@ nlp = spacy.load('en_core_web_sm')
 reviews_df['tokens_spacy'] = reviews_df['text'].apply(tokenize_spacy)
 print(reviews_df[['text', 'tokens_spacy']].head())
 
-
 # Appliquer la lemmatisation
 reviews_df['lemmas_from_tokens'] = reviews_df['tokens_spacy'].apply(lemmatize_tokens)
 print(reviews_df[['tokens_spacy', 'lemmas_from_tokens']].head())
+
+# Supprimer les stopwords
+reviews_df['lemmas_no_stopwords'] = reviews_df['lemmas_from_tokens'].apply(remove_stopwords)
+print(reviews_df[['lemmas_from_tokens', 'lemmas_no_stopwords']].head())
+
+
+
+
+
+date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+# Enregistrer les données traitées
+reviews_df.to_json(f'./processed_data/reviews_processed_{date}.jsonl', lines=True, orient='records')
