@@ -167,8 +167,3 @@ print("Fin du traitement ------\n")
 
 top_words = get_top_words(reviews_selected['lemmas_cleaned'], top_n=10)
 print(f"Top words : {top_words}")
-
-# Appliquer DBSCAN pour regrouper les avis
-from sklearn.cluster import DBSCAN
-
-dbscan = DBSCAN(eps=0.5, min_samples=5).fit(X)
