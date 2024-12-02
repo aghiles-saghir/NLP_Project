@@ -120,4 +120,6 @@ reviews_selected['lemmas_cleaned'].to_json(f'./processed_data/reviews_processed_
                                            f'.jsonl', orient='records', lines=True)
 
 # Charger le fichier json traité
-df_reviews_processed = reviews_selected.copy()
+df_reviews_processed = reviews_selected['lemmas_cleaned'].copy()
+
+# représenter les documents sous forme vectorielle
