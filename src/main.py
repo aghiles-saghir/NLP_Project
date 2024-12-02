@@ -1,8 +1,11 @@
+import os
+from collections import Counter
 import datetime
 import json
 import pandas as pd
 import re
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.cluster import KMeans
 import spacy
 import string
 
@@ -45,7 +48,7 @@ def clean_tokens(tokens):
     regex_multiple_spaces = re.compile(r'\s{2,}')  # Espaces multiples
     # regex_numbers = re.compile(r'\d+')  # Numéros
     regex_emojis = re.compile(r'[^\w\s,]')  # Émojis (tout caractère non alphanumérique ou ponctuation classique)
-    regex_br_tag = re.compile(r'\.<br')  # Détecte la séquence .<br rattachée à d'autres mots
+    regex_br_tag = re.compile(r'\.<br')  # Détecte la séquence.<br rattachée à d'autres mots
 
     cleaned_tokens = []
     for token in tokens:
@@ -58,9 +61,6 @@ def clean_tokens(tokens):
         # Supprimer les espaces multiples (inutile dans les tokens, mais par sécurité)
         if regex_multiple_spaces.match(token):
             continue
-        # # Supprimer les numéros
-        # if regex_numbers.match(token):
-        #     continue
         # Supprimer les émojis
         if regex_emojis.match(token):
             continue
@@ -72,14 +72,27 @@ def clean_tokens(tokens):
             cleaned_tokens.append(token)
     return cleaned_tokens
 
+# Fonction pour calculer les mots fréquents dans chaque cluster
+def get_top_words(documents, top_n=10):
+    word_list = []
+    for doc in documents:
+        word_list.extend(doc)
+    return Counter(word_list).most_common(top_n)
+
 ## ---------------------------------------------------------------------
 
 # Charger les fichiers
 reviews_file_path = './data/reviews.jsonl'
 meta_file_path = './data/meta.jsonl'
+
+# Créer le dossier de sortie si nécessaire
+output_dir = './processed_data'
+os.makedirs(output_dir, exist_ok=True)
+
 # Date pour l'enregistrement des fichiers
 date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
+# Charger les données
 reviews_data = load_jsonl(reviews_file_path)
 meta_data = load_jsonl(meta_file_path)
 
@@ -88,15 +101,8 @@ reviews_df = pd.DataFrame(reviews_data)
 meta_df = pd.DataFrame(meta_data)
 
 # Sélectionner les champs pertinents
-reviews_selected = reviews_df[['title', 'text']]  # Champs pertinents des avis
-meta_selected = meta_df[['main_category', 'title', 'average_rating', 'rating_number']]  # Champs pertinents des métadonnées
-
-# Afficher un aperçu des données
-print("Reviews DataFrame:")
-print(reviews_selected.head())
-
-print("\nMeta DataFrame:")
-print(meta_selected.head())
+reviews_selected = reviews_df[['title', 'text']].copy()
+meta_selected = meta_df[['main_category', 'title', 'average_rating', 'rating_number']].copy()
 
 # Charger le modèle de langue de spaCy
 nlp = spacy.load('en_core_web_sm')
@@ -108,18 +114,49 @@ reviews_selected['tokens_spacy'] = reviews_selected['text'].apply(tokenize_spacy
 reviews_selected['lemmas_from_tokens'] = reviews_selected['tokens_spacy'].apply(lemmatize_tokens)
 
 # Supprimer les stopwords
-reviews_selected['lemmas_no_stopwords'] = reviews_selected['lemmas_from_tokens'].apply(remove_stopwords)
+reviews_selected['lemmas_no_stopwords'] = (reviews_selected['lemmas_from_tokens'].apply(remove_stopwords))
 
 # Supprimer la ponctuation après suppression des stopwords
 reviews_selected['lemmas_cleaned'] = reviews_selected['lemmas_no_stopwords'].apply(clean_tokens)
 
-# Afficher un aperçu des données
-print(reviews_selected[['lemmas_no_stopwords', 'lemmas_cleaned']].head())
+# Convertir les listes nettoyées en chaînes de caractères pour TfidfVectorizer
+reviews_selected['cleaned_text'] = reviews_selected['lemmas_cleaned'].apply(lambda x: " ".join(x))
+
+# Afficher un aperçu des données nettoyées
+print(reviews_selected[['text', 'cleaned_text']].head())
+
 # Enregistrer les données traitées
-reviews_selected['lemmas_cleaned'].to_json(f'./processed_data/reviews_processed_{date}'
-                                           f'.jsonl', orient='records', lines=True)
+processed_file_path = os.path.join(output_dir, f'reviews_processed_{date}.jsonl')
+reviews_selected[['cleaned_text']].to_json(processed_file_path, orient='records', lines=True)
 
-# Charger le fichier json traité
-df_reviews_processed = reviews_selected['lemmas_cleaned'].copy()
+# Charger les textes nettoyés pour vectorisation
+cleaned_texts = reviews_selected['cleaned_text']
 
-# représenter les documents sous forme vectorielle
+# Représenter les documents sous forme vectorielle
+vectorizer = TfidfVectorizer()
+X = vectorizer.fit_transform(cleaned_texts)
+
+print("Clustering des avis avec KMeans...")
+
+# Appliquer l'algorithme KMeans pour regrouper les avis
+kmeans = KMeans(n_clusters=5, random_state=42).fit(X)
+
+# Enregistrer les groupes
+reviews_selected['cluster'] = kmeans.labels_
+
+# Afficher les groupes
+print(reviews_selected[['cluster', 'text']].head())
+
+# Afficher les mots les plus fréquents par cluster
+for cluster_id in range(5):
+    cluster_docs = reviews_selected[reviews_selected['cluster'] == cluster_id]['lemmas_cleaned']
+    top_words = get_top_words(cluster_docs, top_n=10)
+    print(f"Cluster {cluster_id} : {top_words}")
+
+# Enregistrer les groupes
+clustered_file_path = os.path.join(output_dir, f'reviews_clustered_{date}.jsonl')
+
+# Enregistrer les données traitées
+reviews_selected[['cluster', 'cleaned_text']].to_json(clustered_file_path, orient='records', lines=True)
+
+print("Fin du traitement")
