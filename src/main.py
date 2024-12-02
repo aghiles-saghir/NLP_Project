@@ -16,6 +16,15 @@ def tokenize_spacy(text):
     return [token.text for token in doc]
 
 
+#Fonction de lemmatisation 
+def lemmatize_tokens(tokens):
+    # Vérifiez si les tokens sont bien une liste
+    if not isinstance(tokens, list) or not tokens:
+        return []
+    # Convertir les tokens en une chaîne de caractères pour spaCy
+    text = " ".join(tokens)
+    doc = nlp(text)
+    return [token.lemma_ for token in doc]
 
 ## ---------------------------------------------------------------------
 
@@ -44,8 +53,11 @@ print(meta_selected.head())
 # Charger le modèle de langue de spaCy
 nlp = spacy.load('en_core_web_sm')
 
-# Ajouter une colonne tokenisée
+# Ajouter une colonne tokenisée (tokenisation)
 reviews_df['tokens_spacy'] = reviews_df['text'].apply(tokenize_spacy)
-
-# Afficher un aperçu des tokens
 print(reviews_df[['text', 'tokens_spacy']].head())
+
+
+# Appliquer la lemmatisation
+reviews_df['lemmas_from_tokens'] = reviews_df['tokens_spacy'].apply(lemmatize_tokens)
+print(reviews_df[['tokens_spacy', 'lemmas_from_tokens']].head())
