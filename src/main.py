@@ -2,6 +2,7 @@ import datetime
 import json
 import pandas as pd
 import re
+from sklearn.feature_extraction.text import TfidfVectorizer
 import spacy
 import string
 
@@ -42,28 +43,33 @@ def clean_tokens(tokens):
     # Compilation des regex pour optimisation
     regex_multiple_punctuations = re.compile(r'[\.\,\!\?\;\:]{2,}')  # Ponctuation répétée
     regex_multiple_spaces = re.compile(r'\s{2,}')  # Espaces multiples
-    regex_numbers = re.compile(r'\d+')  # Numéros
+    # regex_numbers = re.compile(r'\d+')  # Numéros
     regex_emojis = re.compile(r'[^\w\s,]')  # Émojis (tout caractère non alphanumérique ou ponctuation classique)
+    regex_br_tag = re.compile(r'\.<br')  # Détecte la séquence .<br rattachée à d'autres mots
 
     cleaned_tokens = []
     for token in tokens:
+        # Supprimer la séquence '.<br' dans un token
+        token = regex_br_tag.sub('', token)
+
         # Supprimer les ponctuations répétées
         if regex_multiple_punctuations.match(token):
             continue
         # Supprimer les espaces multiples (inutile dans les tokens, mais par sécurité)
         if regex_multiple_spaces.match(token):
             continue
-        # Supprimer les numéros
-        if regex_numbers.match(token):
-            continue
+        # # Supprimer les numéros
+        # if regex_numbers.match(token):
+        #     continue
         # Supprimer les émojis
         if regex_emojis.match(token):
             continue
         # Supprimer les ponctuations uniques
         if token in string.punctuation:
             continue
-        # Ajouter le token nettoyé
-        cleaned_tokens.append(token)
+        # Ajouter le token nettoyé s'il reste du contenu
+        if token.strip():
+            cleaned_tokens.append(token)
     return cleaned_tokens
 
 ## ---------------------------------------------------------------------
@@ -107,8 +113,11 @@ reviews_selected['lemmas_no_stopwords'] = reviews_selected['lemmas_from_tokens']
 # Supprimer la ponctuation après suppression des stopwords
 reviews_selected['lemmas_cleaned'] = reviews_selected['lemmas_no_stopwords'].apply(clean_tokens)
 
+# Afficher un aperçu des données
 print(reviews_selected[['lemmas_no_stopwords', 'lemmas_cleaned']].head())
-
-
 # Enregistrer les données traitées
-reviews_selected['lemmas_cleaned'].to_csv(f'./processed_data/reviews_processed_{date}.csv', index=False)
+reviews_selected['lemmas_cleaned'].to_json(f'./processed_data/reviews_processed_{date}'
+                                           f'.jsonl', orient='records', lines=True)
+
+# Charger le fichier json traité
+df_reviews_processed = reviews_selected.copy()
