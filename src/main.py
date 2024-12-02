@@ -3,6 +3,8 @@ import json
 import spacy
 import pandas as pd
 import datetime
+import string
+
 
 # Fonction pour charger un fichier JSONL
 def load_jsonl(file_path):
@@ -30,6 +32,11 @@ def lemmatize_tokens(tokens):
 def remove_stopwords(tokens):
     # Filtrer les tokens qui ne sont pas des stopwords
     return [token for token in tokens if not nlp.vocab[token].is_stop]
+
+# Fonction pour supprimer ponctuation et espaces vides
+def remove_punctuation_and_spaces(tokens):
+    # Filtrer les tokens qui ne sont pas de la ponctuation et qui ne sont pas des espaces vides
+    return [token for token in tokens if token not in string.punctuation and token.strip() != '']
 
 
 ## ---------------------------------------------------------------------
@@ -60,17 +67,21 @@ print(meta_selected.head())
 nlp = spacy.load('en_core_web_sm')
 
 # Ajouter une colonne tokenisée (tokenisation)
-reviews_df['tokens_spacy'] = reviews_df['text'].apply(tokenize_spacy)
-print(reviews_df[['text', 'tokens_spacy']].head())
+reviews_selected['tokens_spacy'] = reviews_selected['text'].apply(tokenize_spacy)
+print(reviews_selected[['text', 'tokens_spacy']].head())
 
 # Appliquer la lemmatisation
-reviews_df['lemmas_from_tokens'] = reviews_df['tokens_spacy'].apply(lemmatize_tokens)
-print(reviews_df[['tokens_spacy', 'lemmas_from_tokens']].head())
+reviews_selected['lemmas_from_tokens'] = reviews_selected['tokens_spacy'].apply(lemmatize_tokens)
+print(reviews_selected[['tokens_spacy', 'lemmas_from_tokens']].head())
 
 # Supprimer les stopwords
-reviews_df['lemmas_no_stopwords'] = reviews_df['lemmas_from_tokens'].apply(remove_stopwords)
-print(reviews_df[['lemmas_from_tokens', 'lemmas_no_stopwords']].head())
+reviews_selected['lemmas_no_stopwords'] = reviews_selected['lemmas_from_tokens'].apply(remove_stopwords)
+print(reviews_selected[['lemmas_from_tokens', 'lemmas_no_stopwords']].head())
 
+# Supprimer la ponctuation après suppression des stopwords
+reviews_selected['lemmas_cleaned'] = reviews_selected['lemmas_no_stopwords'].apply(remove_punctuation_and_spaces)
+
+print(reviews_selected[['lemmas_no_stopwords', 'lemmas_cleaned']].head())
 
 
 
@@ -78,4 +89,4 @@ print(reviews_df[['lemmas_from_tokens', 'lemmas_no_stopwords']].head())
 date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 # Enregistrer les données traitées
-reviews_df.to_json(f'./processed_data/reviews_processed_{date}.jsonl', lines=True, orient='records')
+reviews_selected.to_json(f'./processed_data/reviews_processed_{date}.jsonl', lines=True, orient='records')
