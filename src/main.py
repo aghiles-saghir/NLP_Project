@@ -1,3 +1,6 @@
+"""This script processes the reviews data and clusters them using KMeans."""
+
+# Importing libraries
 import os
 from collections import Counter
 import datetime
@@ -9,6 +12,7 @@ from sklearn.cluster import KMeans
 import spacy
 import string
 
+# ---------------------------------------------------------------------
 
 # Fonction pour charger un fichier JSONL
 def load_jsonl(file_path):
@@ -79,7 +83,8 @@ def get_top_words(documents, top_n=10):
         word_list.extend(doc)
     return Counter(word_list).most_common(top_n)
 
-## ---------------------------------------------------------------------
+# ---------------------------------------------------------------------
+# Initialisation des variables
 
 # Chemins des fichiers d'entrée
 reviews_file_path = './data/reviews.jsonl'
@@ -91,6 +96,9 @@ os.makedirs(output_dir, exist_ok=True)
 
 # Date pour l'enregistrement des fichiers
 date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+# ---------------------------------------------------------------------
+# Traitement des données
 
 # Charger les données
 reviews_data = load_jsonl(reviews_file_path)
@@ -135,6 +143,9 @@ reviews_selected[['cleaned_text']].to_json(processed_file_path, orient='records'
 # Charger les textes nettoyés pour vectorisation
 cleaned_texts = reviews_selected['cleaned_text']
 
+# ---------------------------------------------------------------------
+# Clustering des avis
+
 # Représenter les documents sous forme vectorielle
 vectorizer = TfidfVectorizer()
 X = vectorizer.fit_transform(cleaned_texts)
@@ -167,8 +178,3 @@ print("Fin du traitement ------\n")
 
 top_words = get_top_words(reviews_selected['lemmas_cleaned'], top_n=10)
 print(f"Top words : {top_words}")
-
-# Appliquer DBSCAN pour regrouper les avis
-from sklearn.cluster import DBSCAN
-
-dbscan = DBSCAN(eps=0.5, min_samples=5).fit(X)
