@@ -8,6 +8,7 @@ import json
 import pandas as pd
 import re
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.cluster import KMeans
 import spacy
 import string
@@ -83,6 +84,21 @@ def get_top_words(documents, top_n=10):
         word_list.extend(doc)
     return Counter(word_list).most_common(top_n)
 
+
+#Fonction bigrams
+def get_top_bigrams_cleaned(documents, top_n=10):
+    # Convertir les listes de tokens en chaînes de caractères
+    documents = [" ".join(doc) for doc in documents]
+    # Initialiser CountVectorizer pour les bigrams
+    vectorizer = CountVectorizer(ngram_range=(2, 2))
+    X = vectorizer.fit_transform(documents)
+    # Extraire les bigrams et leurs fréquences
+    bigrams = vectorizer.get_feature_names_out()
+    frequencies = X.toarray().sum(axis=0)
+    # Trier les bigrams par fréquence et convertir en tuples propres
+    bigrams_freq = [(bigram, int(freq)) for bigram, freq in sorted(zip(bigrams, frequencies), key=lambda x: x[1], reverse=True)]
+    return bigrams_freq[:top_n]
+
 # ---------------------------------------------------------------------
 # Initialisation des variables
 
@@ -149,6 +165,7 @@ cleaned_texts = reviews_selected['cleaned_text']
 # Représenter les documents sous forme vectorielle
 vectorizer = TfidfVectorizer()
 X = vectorizer.fit_transform(cleaned_texts)
+
 print(X)
 
 print("\n------ Clustering des avis avec KMeans...\n")
@@ -164,17 +181,24 @@ print(reviews_selected[['cluster', 'text']].head())
 
 # Afficher les mots les plus fréquents par cluster
 for cluster_id in range(5):
-    cluster_docs = reviews_selected[reviews_selected['cluster'] == cluster_id]['lemmas_cleaned']
-    top_words = get_top_words(cluster_docs, top_n=10)
+    cluster_docs = reviews_selected[reviews_selected['cluster'] == cluster_id]['cleaned_text']
+    # Convertir les textes en listes de mots
+    cluster_docs_tokens = [doc.split() for doc in cluster_docs]
+    top_words = get_top_words(cluster_docs_tokens, top_n=10)
     print(f"Cluster {cluster_id} : {top_words}")
-
-# Enregistrer les groupes
-clustered_file_path = os.path.join(output_dir, f'reviews_clustered_{date}.jsonl')
-
-# Enregistrer les données traitées
-reviews_selected[['cluster', 'cleaned_text']].to_json(clustered_file_path, orient='records', lines=True)
 
 print("Fin du traitement ------\n")
 
-top_words = get_top_words(reviews_selected['lemmas_cleaned'], top_n=10)
+
+# Afficher les bigrams les plus fréquents par cluster
+for cluster_id in range(5):
+    cluster_docs = reviews_selected[reviews_selected['cluster'] == cluster_id]['cleaned_text']
+    # Convertir les textes en listes de mots
+    cluster_docs_tokens = [doc.split() for doc in cluster_docs]
+    top_bigrams = get_top_bigrams_cleaned(cluster_docs_tokens, top_n=10)
+    print(f"Cluster {cluster_id} : {top_bigrams}")
+
+# Top mots global
+all_docs_tokens = [doc.split() for doc in reviews_selected['cleaned_text']]
+top_words = get_top_words(all_docs_tokens, top_n=10)
 print(f"Top words : {top_words}")
