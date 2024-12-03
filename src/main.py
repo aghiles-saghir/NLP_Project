@@ -3,7 +3,6 @@
 # Importing libraries
 import os
 from collections import Counter
-import datetime
 import json
 import pandas as pd
 import re
@@ -84,7 +83,6 @@ def get_top_words(documents, top_n=10):
         word_list.extend(doc)
     return Counter(word_list).most_common(top_n)
 
-
 #Fonction bigrams
 def get_top_bigrams_cleaned(documents, top_n=10):
     # Convertir les listes de tokens en chaînes de caractères
@@ -110,23 +108,20 @@ meta_file_path = './data/meta.jsonl'
 output_dir = './processed_data'
 os.makedirs(output_dir, exist_ok=True)
 
-# Date pour l'enregistrement des fichiers
-date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-
 # ---------------------------------------------------------------------
 # Traitement des données
 
 # Charger les données
 reviews_data = load_jsonl(reviews_file_path)
-meta_data = load_jsonl(meta_file_path)
+# meta_data = load_jsonl(meta_file_path)
 
 # Convertir en DataFrame
 reviews_df = pd.DataFrame(reviews_data)
-meta_df = pd.DataFrame(meta_data)
+# meta_df = pd.DataFrame(meta_data)
 
 # Sélectionner les champs pertinents
-reviews_selected = reviews_df[['title', 'text']].copy()
-meta_selected = meta_df[['main_category', 'title', 'average_rating', 'rating_number']].copy()
+reviews_selected = reviews_df[['rating', 'title', 'text']].copy()
+# meta_selected = meta_df[['main_category', 'title', 'average_rating', 'rating_number']].copy()
 
 # Charger le modèle de langue de spaCy
 nlp = spacy.load('en_core_web_sm')
@@ -153,8 +148,8 @@ reviews_selected['cleaned_text'] = reviews_selected['cleaned_text'].str.lower()
 print(reviews_selected[['text', 'cleaned_text']].head())
 
 # Enregistrer les données traitées
-processed_file_path = os.path.join(output_dir, f'reviews_processed_{date}.jsonl')
-reviews_selected[['cleaned_text']].to_json(processed_file_path, orient='records', lines=True)
+processed_file_path = os.path.join(output_dir, f'reviews_processed.jsonl')
+reviews_selected[['rating', 'cleaned_text']].to_json(processed_file_path, orient='records', lines=True)
 
 # Charger les textes nettoyés pour vectorisation
 cleaned_texts = reviews_selected['cleaned_text']
@@ -189,7 +184,6 @@ for cluster_id in range(5):
 
 print("Fin du traitement ------\n")
 
-
 # Afficher les bigrams les plus fréquents par cluster
 for cluster_id in range(5):
     cluster_docs = reviews_selected[reviews_selected['cluster'] == cluster_id]['cleaned_text']
@@ -201,4 +195,4 @@ for cluster_id in range(5):
 # Top mots global
 all_docs_tokens = [doc.split() for doc in reviews_selected['cleaned_text']]
 top_words = get_top_words(all_docs_tokens, top_n=10)
-print(f"Top words : {top_words}")
+print(f"\n\nTop words : {top_words}\n\n")
