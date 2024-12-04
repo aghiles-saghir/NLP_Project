@@ -1,3 +1,4 @@
+"""Version python 3.12"""
 """This script processes the reviews data and clusters them using KMeans."""
 
 # Importing libraries

@@ -1,3 +1,6 @@
+"""Version python 3.12"""
+"""This script processes the reviews data and predicts the sentiments of the reviews."""
+
 # Importation des bibliothèques nécessaires
 import json
 import pandas as pd
