@@ -162,4 +162,5 @@ cython_debug/
 .idea/
 
 # Processed data files
-processed_data/*
+*.csv
+*.jsonl
