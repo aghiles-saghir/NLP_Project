@@ -196,3 +196,7 @@ for cluster_id in range(5):
 all_docs_tokens = [doc.split() for doc in reviews_selected['cleaned_text']]
 top_words = get_top_words(all_docs_tokens, top_n=10)
 print(f"\n\nTop words : {top_words}\n\n")
+
+# Enregistrer les résultats
+output_file_path = os.path.join(output_dir, './processed_data/reviews_clustered.csv')
+reviews_selected.to_csv(output_file_path, index=False)

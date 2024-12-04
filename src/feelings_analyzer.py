@@ -3,7 +3,6 @@ import json
 import pandas as pd
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
-from torch.utils.data import DataLoader
 from torch.nn.functional import softmax
 
 # ---------------------------------------------------------------------
@@ -53,13 +52,17 @@ def predict_sentiments(input_ids, attention_masks, model, batch_size):
     return sentiments
 
 # ---------------------------------------------------------------------
-# Charger et préparer les données
-file_path = './processed_data/reviews_processed.jsonl'
-data = load_jsonl(file_path)[:200]  # Limitation à 200 lignes pour les tests
-df = pd.DataFrame(data)
 
-# Prétraitement : Extraire les textes des avis
-texts = df['cleaned_text'].tolist()  # Remplacer 'cleaned_text' par la colonne correcte
+# Charger et préparer les données
+file_path = './data/reviews.jsonl'
+# Prendre seulement 200 lignes random
+data = load_jsonl(file_path)
+df = pd.DataFrame(data)
+df = df.sample(n=200, random_state=42)  # Prendre seulement 200 lignes random
+
+# Prétraitement : Extraire les textes des avis concaténé avec les titles
+texts = df['title'] + ', ' + df['text']
+texts = texts.tolist()  # Remplacer 'text' par la colonne correcte
 
 # Charger le modèle et le tokenizer
 model_name = "nlptown/bert-base-multilingual-uncased-sentiment"
@@ -67,15 +70,24 @@ tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForSequenceClassification.from_pretrained(model_name)
 
 # Prétraiter les textes
-max_len = 128
+max_len = 512
 input_ids, attention_masks = preprocess_texts(texts, tokenizer, max_len)
 
 # Analyser les sentiments
-batch_size = 16
+batch_size = 32
 sentiments = predict_sentiments(input_ids, attention_masks, model, batch_size)
 
 # Ajouter les résultats au DataFrame
 df['sentiment'] = sentiments
 
 # Afficher les premières lignes avec les sentiments prédits
-print(df.head())
+print(df[['rating', 'title', 'text', 'sentiment']].head())
+
+# Calculer la corrélation entre les notes et les sentiments prédits
+correlation = df['rating'].corr(df['sentiment'])
+
+# Enregistrer les résultats dans un fichier CSV
+output_file_path = './processed_data/reviews_with_feelings.csv'
+df.to_csv(output_file_path, index=False)
+
+print(f"Corrélation entre les notes et les sentiments prédits : {correlation*100:.2f}%")
