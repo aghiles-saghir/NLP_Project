@@ -3,7 +3,7 @@
 
 Ce projet analyse les avis utilisateurs en appliquant un traitement de texte avancé pour le clustering et la prédiction des sentiments. Il utilise des techniques de traitement du langage naturel (NLP) et de machine learning pour explorer et structurer les données textuelles.
 
-## Table des matières
+## 📖 Table des matières
 - [Structure du projet](#structure-du-projet)
 - [Fonctionnalités](#fonctionnalités)
 - [Prérequis](#prérequis)
@@ -14,7 +14,7 @@ Ce projet analyse les avis utilisateurs en appliquant un traitement de texte ava
 
 ---
 
-## Structure du projet
+## 📂 Structure du projet
 
 ```
 src/
@@ -58,7 +58,7 @@ processed_data/
 
 ---
 
-## Prérequis
+## ✅ Prérequis
 
 - Python 3.12
 - Bibliothèques Python :
@@ -138,12 +138,6 @@ processed_data/
 - Les fichiers inutiles sont ignorés par Git.
 
 ---
-
-## 📚 Ressources
-
-- **spaCy** : [Documentation officielle](https://spacy.io/)
-- **Scikit-learn** : [Documentation officielle](https://scikit-learn.org/)
-- **TF-IDF** : [Principe expliqué](https://en.wikipedia.org/wiki/Tf%E2%80%93idf)
 
 ## 📝 Auteurs
 
