@@ -46,7 +46,6 @@ Ce projet implémente un pipeline de traitement de texte pour regrouper des docu
 
 1. Placez vos fichiers JSONL d'entrée dans le dossier `./data` :
    - `reviews.jsonl` : Contient les avis à analyser.
-   - `meta.jsonl` : Contient des métadonnées.
 
 2. Exécutez le script principal :
    ```bash
@@ -78,13 +77,13 @@ Ce projet implémente un pipeline de traitement de texte pour regrouper des docu
 ```plaintext
 .
 ├── data/
-│   ├── reviews.jsonl          # Fichier d'avis (input)
-│   └── meta.jsonl             # Fichier de métadonnées (facultatif)
+│   └── reviews.jsonl          # Fichier d'avis (input)
 ├── processed_data/
-│   ├── reviews_processed_<date>.jsonl # Fichiers nettoyés
-│   └── reviews_clustered_<date>.jsonl # Fichiers regroupés par cluster
-├── src                  # Script principal
-│   └── main.py           # Pipeline de traitement de texte
+│   ├── reviews_processed.jsonl # Fichiers nettoyés
+│   └── reviews_clustered.jsonl # Fichiers regroupés par cluster
+├── src                     # Script principal
+│   ├── main.py              # Pipeline de traitement de texte
+│   └── feelings_analyzer.py # Analyse des sentiments
 ├── requirements.txt           # Dépendances
 ├── README.md                  # Documentation
 └── .gitignore                 # Fichiers ignorés par Git
