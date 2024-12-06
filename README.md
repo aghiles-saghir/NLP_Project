@@ -1,7 +1,35 @@
 
-# Clustering et Analyse de Fréquences des Mots dans des Documents
+# Analyse et Clustering des Avis
 
-Ce projet implémente un pipeline de traitement de texte pour regrouper des documents en clusters à l'aide de l'algorithme KMeans et analyser les mots fréquents dans chaque cluster.
+Ce projet analyse les avis utilisateurs en appliquant un traitement de texte avancé pour le clustering et la prédiction des sentiments. Il utilise des techniques de traitement du langage naturel (NLP) et de machine learning pour explorer et structurer les données textuelles.
+
+## Table des matières
+- [Structure du projet](#structure-du-projet)
+- [Fonctionnalités](#fonctionnalités)
+- [Prérequis](#prérequis)
+- [Installation](#installation)
+- [Utilisation](#utilisation)
+- [Résultats](#résultats)
+- [Auteurs](#auteurs)
+
+---
+
+## Structure du projet
+
+```
+src/
+├── main.py              # Script pour le traitement et le clustering des avis
+├── feelings_analyzer.py # Script pour la prédiction des sentiments
+data/
+├── reviews.jsonl        # Fichier contenant les avis au format JSONL
+├── meta.jsonl           # Métadonnées associées aux avis
+processed_data/
+├── reviews_processed.jsonl   # Avis prétraités
+├── reviews_clustered.csv     # Résultats du clustering
+├── reviews_with_feelings.csv # Résultats de la prédiction des sentiments
+```
+
+---
 
 ## 📋 Fonctionnalités
 
@@ -24,6 +52,29 @@ Ce projet implémente un pipeline de traitement de texte pour regrouper des docu
 5. **Export des résultats :**
    - Sauvegarde des documents enrichis avec leur cluster dans des fichiers JSONL.
 
+6. **Prédiction des sentiments :**
+   - Utilisation du modèle pré-entraîné `nlptown/bert-base-multilingual-uncased-sentiment`.
+   - Prédiction des sentiments des avis avec calcul de la corrélation entre les notes et les sentiments.
+
+---
+
+## Prérequis
+
+- Python 3.12
+- Bibliothèques Python :
+  - `pandas`
+  - `scikit-learn`
+  - `spacy`
+  - `transformers`
+  - `torch`
+  - `regex`
+  - Modèle de langue spaCy : `en_core_web_sm`
+    ```bash
+    python -m spacy download en_core_web_sm
+    ```
+
+---
+
 ## 🚀 Installation
 
 1. Clonez ce dépôt :
@@ -42,23 +93,36 @@ Ce projet implémente un pipeline de traitement de texte pour regrouper des docu
    python -m spacy download en_core_web_sm
    ```
 
+---
+
 ## 🛠️ Utilisation
 
-1. Placez vos fichiers JSONL d'entrée dans le dossier `./data` :
-   - `reviews.jsonl` : Contient les avis à analyser.
+1. **Clustering des avis** :
+   - Exécutez le script `main.py` :
+     ```bash
+     python src/main.py
+     ```
+   - Les résultats seront enregistrés dans `processed_data/reviews_clustered.csv`.
 
-2. Exécutez le script principal :
-   ```bash
-   python main.py
-   ```
+2. **Prédiction des sentiments** :
+   - Exécutez le script `feelings_analyzer.py` :
+     ```bash
+     python src/feelings_analyzer.py
+     ```
+   - Les résultats seront enregistrés dans `processed_data/reviews_with_feelings.csv`.
 
-3. Les résultats seront sauvegardés dans le dossier `./processed_data` avec un horodatage.
+---
 
 ## 📊 Résultats
 
-- Chaque cluster contient les textes groupés selon leur similarité.
-- Les 10 mots les plus fréquents par cluster sont affichés dans la console.
-- Les données enrichies (clusters, textes nettoyés) sont sauvegardées dans un fichier JSONL.
+1. **Clustering** :
+   - Les avis sont regroupés en 5 clusters. Les mots et bigrams les plus fréquents dans chaque cluster sont affichés dans la console.
+
+2. **Prédiction des sentiments** :
+   - Les sentiments des avis sont prédits et enregistrés dans un fichier CSV.
+   - Une corrélation est calculée entre les notes données par les utilisateurs et les sentiments prédits.
+
+---
 
 ## 📈 Évaluation
 
@@ -67,27 +131,13 @@ Ce projet implémente un pipeline de traitement de texte pour regrouper des docu
 ## 🛡️ Conventions de codage
 
 - Le code utilise Python 3.12.
-- Les bibliothèques principales sont :
-  - `pandas` pour la manipulation des données.
-  - `scikit-learn` pour la vectorisation et le clustering.
-  - `spaCy` pour le traitement du langage naturel.
+- Les noms de variables sont explicites et en minuscules.
+- Les commentaires sont écrits en anglais.
+- Le code est formaté avec `black` et `isort`.
+- Les dépendances sont listées dans `requirements.txt`.
+- Les fichiers inutiles sont ignorés par Git.
 
-## 📂 Structure du projet
-
-```plaintext
-.
-├── data/
-│   └── reviews.jsonl          # Fichier d'avis (input)
-├── processed_data/
-│   ├── reviews_processed.jsonl # Fichiers nettoyés
-│   └── reviews_clustered.jsonl # Fichiers regroupés par cluster
-├── src                     # Script principal
-│   ├── main.py              # Pipeline de traitement de texte
-│   └── feelings_analyzer.py # Analyse des sentiments
-├── requirements.txt           # Dépendances
-├── README.md                  # Documentation
-└── .gitignore                 # Fichiers ignorés par Git
-```
+---
 
 ## 📚 Ressources
 
